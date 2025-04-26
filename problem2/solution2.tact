@@ -8,7 +8,6 @@ message DeployNewProposal {
 }
 
 
-
 contract ProposalMaster {
     nextProposalId: Int as uint32 = 0;
 
@@ -69,8 +68,11 @@ contract Proposal {
 
     receive(msg: Vote) {
         require(self.yesCount + self.noCount < self.MAX_VOTES, "Max votes reached");
-        require(now() <= self.votingEndingAt, "Voting ended");
+        require(now() < self.votingEndingAt, "Voting ended");
         require(!self.voters.exists(sender()), "Already voted");
+        if (sender() == self.masterAddress) {
+            throw(2025);
+        }
 
         self.voters.set(sender(), msg.value);
         if (msg.value) {
