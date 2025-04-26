@@ -38,10 +38,11 @@ contract Proposal {
     }
 
     receive(msg: Vote) {
-        require(self.nVotes <= self.MAX_VOTES, "Max votes reached");
+        require(self.nVotes < self.MAX_VOTES, "Max votes reached");
         require(now() <= self.votingEndingAt, "Voting ended");
         require(!self.voters.exists(sender()), "Already voted");
-        
+    
+
         self.voters.set(sender(), msg.value);
         self.nVotes += 1;
         if (msg.value) {
@@ -49,6 +50,9 @@ contract Proposal {
         } else {
             self.noCount += 1;
         }
+        
+
+        cashback(sender());
     }
 
     get fun proposalState(): ProposalState {
