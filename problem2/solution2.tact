@@ -7,7 +7,6 @@ message DeployNewProposal {
     votingEndingAt: Int as uint32;
 }
 
-
 contract ProposalMaster {
     nextProposalId: Int as uint32 = 0;
 
@@ -62,13 +61,19 @@ contract Proposal {
     masterAddress: Address;
 
     init(data: ProposalInit) {
+        // TODO(mkl): #PERFORMANCE: hardcode address in the code
+        let expectedMasterInit = initOf ProposalMaster();
+        if (data.master != contractAddress(expectedMasterInit)) {
+            throw(2025);
+        }
+
         self.proposalId = data.proposalId;
         self.masterAddress = data.master;
     }
 
     receive(msg: Vote) {
         require(self.yesCount + self.noCount < self.MAX_VOTES, "Max votes reached");
-        require(now() < self.votingEndingAt, "Voting ended");
+        require(now() <= self.votingEndingAt, "Voting ended");
         require(!self.voters.exists(sender()), "Already voted");
         if (sender() == self.masterAddress) {
             throw(2025);
@@ -85,9 +90,13 @@ contract Proposal {
     }
 
     receive(msg: DeployNewProposal) {
-       if (sender() != self.masterAddress) {
+        if (sender() != self.masterAddress) {
             throw(2025);
         }
+
+        require(self.votingEndingAt == 0, "Already initialized");
+        require(msg.votingEndingAt > now(), "Voting must end in the future");
+
         self.votingEndingAt = msg.votingEndingAt;
     }
 
