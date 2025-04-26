@@ -49,8 +49,6 @@ contract Proposal {
         } else {
             self.noCount += 1;
         }
-
-        cashback(sender());
     }
 
     get fun proposalState(): ProposalState {
