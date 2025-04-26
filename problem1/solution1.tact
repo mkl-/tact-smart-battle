@@ -35,7 +35,6 @@ contract Proposal {
 
     // deploy
     receive() {
-        cashback(sender());
     }
 
     receive(msg: Vote) {
