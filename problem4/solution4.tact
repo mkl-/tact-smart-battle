@@ -8,18 +8,33 @@ message DeployNewProposal {
 }
 
 contract ProposalMaster {
-    // top up
+    nextProposalId: Int as uint32 = 0;
+
+    // deploy
     receive() {
-        // TODO: implement
+        nativeReserve(ton("0.01"), ReserveAtMost);
+        cashback(sender());
     }
 
     receive(msg: DeployNewProposal) {
-        // TODO: implement
+        require(msg.votingEndingAt >= now(), "Voting must end in the future");
+
+        deploy(DeployParameters {
+            value: 0,
+            mode: SendRemainingValue,
+            body: msg.toCell(),
+            init: initOf Proposal(ProposalInit {
+                master: myAddress(),
+                proposalId: self.nextProposalId,
+            }),
+        });
+
+        self.nextProposalId += 1;
     }
 
-    get fun nextProposalId(): Int {
-        // TODO: implement
-    }
+    get fun nextProposalId(): Int { return self.nextProposalId }
+
+    get fun proposalState(): Int { return self.nextProposalId }
 }
 
 // ==============================================================================
@@ -37,16 +52,54 @@ struct ProposalState {
 }
 
 contract Proposal {
+    const MAX_VOTES: Int = 100;
+
+    proposalId: Int as uint32;
+    votingEndingAt: Int as uint32 = 0;
+
+    yesCount: Int as uint8 = 0;
+    noCount: Int as uint8 = 0;
+
+    voters: map<Address, Bool>;
+
+    masterAddress: Address;
 
     init(data: ProposalInit) {
-        // TODO: implement
+        let expectedMasterAddress = contractAddress(initOf ProposalMaster());
+        throwIf(2025, sender() != expectedMasterAddress);
+
+        self.proposalId = data.proposalId;
+        self.masterAddress = data.master;
     }
 
     receive(msg: Vote) {
-        // TODO: implement
+        require(self.yesCount + self.noCount < self.MAX_VOTES, "Max votes reached");
+        require(now() <= self.votingEndingAt, "Voting ended");
+        require(!self.voters.exists(sender()), "Already voted");
+
+        self.voters.set(sender(), msg.value);
+        if (msg.value) {
+            self.yesCount += 1;
+        } else {
+            self.noCount += 1;
+        }
+
+        cashback(sender());
+    }
+
+    receive(msg: DeployNewProposal) {
+        throwIf(2025, sender() != self.masterAddress);
+
+        self.votingEndingAt = msg.votingEndingAt;
     }
 
     get fun proposalState(): ProposalState {
-        // TODO: implement
+        return ProposalState {
+            yesCount: self.yesCount,
+            noCount: self.noCount,
+            master: self.masterAddress,
+            proposalId: self.proposalId,
+            votingEndingAt: self.votingEndingAt,
+        };
     }
 }
