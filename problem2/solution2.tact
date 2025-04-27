@@ -19,7 +19,6 @@ contract ProposalMaster {
         deploy(DeployParameters {
             value: 0,
             mode: SendRemainingValue,
-            bounce: true,
             body: msg.toCell(),
             init: initOf Proposal(ProposalInit {
                 master: myAddress(),
