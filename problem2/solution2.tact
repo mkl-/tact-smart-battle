@@ -63,7 +63,7 @@ contract Proposal {
 
     init(data: ProposalInit) {
         let expectedMasterAddress = contractAddress(initOf ProposalMaster());
-        throwIf(2025, data.master != expectedMasterAddress);
+        throwIf(2025, sender() != expectedMasterAddress);
 
         self.proposalId = data.proposalId;
         self.masterAddress = data.master;
