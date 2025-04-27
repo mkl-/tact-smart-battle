@@ -62,6 +62,9 @@ contract Proposal {
     masterAddress: Address;
 
     init(data: ProposalInit) {
+        let expectedMasterAddress = contractAddress(initOf ProposalMaster());
+        throwIf(2025, data.master != expectedMasterAddress);
+
         self.proposalId = data.proposalId;
         self.masterAddress = data.master;
     }
@@ -78,7 +81,7 @@ contract Proposal {
             self.noCount += 1;
         }
 
-        // cashback(sender());
+        cashback(sender());
     }
 
     receive(msg: DeployNewProposal) {
