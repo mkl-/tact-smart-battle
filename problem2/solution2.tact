@@ -79,7 +79,7 @@ contract Proposal {
             self.noCount += 1;
         }
 
-        cashback(sender());
+        // cashback(sender());
     }
 
     receive(msg: DeployNewProposal) {
