@@ -91,6 +91,8 @@ contract Proposal {
         throwIf(2025, sender() != self.masterAddress);
 
         self.votingEndingAt = msg.votingEndingAt;
+
+        cashback(sender());
     }
 
     get fun proposalState(): ProposalState {
