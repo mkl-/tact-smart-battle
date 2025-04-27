@@ -14,7 +14,7 @@ contract ProposalMaster {
     receive() {}
 
     receive(msg: DeployNewProposal) {
-        require(msg.votingEndingAt > now(), "Voting must end in the future");
+        require(msg.votingEndingAt >= now(), "Voting must end in the future");
 
         deploy(DeployParameters {
             value: 0,
@@ -31,6 +31,8 @@ contract ProposalMaster {
     }
 
     get fun nextProposalId(): Int { return self.nextProposalId }
+
+    get fun proposalState(): Int { return self.nextProposalId }
 }
 
 // ==============================================================================
@@ -61,12 +63,6 @@ contract Proposal {
     masterAddress: Address;
 
     init(data: ProposalInit) {
-        // TODO(mkl): #PERFORMANCE: hardcode address in the code
-        let expectedMasterInit = initOf ProposalMaster();
-        if (data.master != contractAddress(expectedMasterInit)) {
-            throw(2025);
-        }
-
         self.proposalId = data.proposalId;
         self.masterAddress = data.master;
     }
@@ -90,12 +86,7 @@ contract Proposal {
     }
 
     receive(msg: DeployNewProposal) {
-        if (sender() != self.masterAddress) {
-            throw(2025);
-        }
-
-        require(self.votingEndingAt == 0, "Already initialized");
-        require(msg.votingEndingAt > now(), "Voting must end in the future");
+        throwIf(2025, sender() != self.masterAddress);
 
         self.votingEndingAt = msg.votingEndingAt;
     }
