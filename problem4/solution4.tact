@@ -8,12 +8,19 @@ message DeployNewProposal {
 }
 
 contract ProposalMaster {
+    const MESSAGE_PAYMENT: Int = ton("0.01");
+
     nextProposalId: Int as uint32 = 0;
 
     // deploy
     receive() {
-        nativeReserve(ton("0.01"), ReserveAtMost);
-        cashback(sender());
+        let ctx = context();
+        if (ctx.value > self.MESSAGE_PAYMENT) {
+            message(MessageParameters {
+                to: ctx.sender,
+                value: ctx.value - self.MESSAGE_PAYMENT,
+            });
+        }
     }
 
     receive(msg: DeployNewProposal) {
