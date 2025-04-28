@@ -8,19 +8,23 @@ message DeployNewProposal {
 }
 
 contract ProposalMaster {
-    const MESSAGE_PAYMENT: Int = ton("0.01");
+    const DESIRED_BALANCE: Int = ton("0.01");
 
     nextProposalId: Int as uint32 = 0;
 
     // deploy
     receive() {
         let ctx = context();
-        if (ctx.value > self.MESSAGE_PAYMENT) {
-            message(MessageParameters {
+        let balance = myBalance();
+        if (balance > self.DESIRED_BALANCE) {
+            nativeReserve(self.DESIRED_BALANCE, ReserveAtMost);
+            let remaining = balance - self.DESIRED_BALANCE;
+            send(SendParameters{
                 to: ctx.sender,
-                value: ctx.value - self.MESSAGE_PAYMENT,
+                value: remaining,
             });
         }
+        
     }
 
     receive(msg: DeployNewProposal) {
