@@ -16,15 +16,16 @@ contract ProposalMaster {
     receive() {
         let ctx = context();
         let balance = myBalance();
+        dump("balance");
+        dump(balance);
         if (balance > self.DESIRED_BALANCE) {
             nativeReserve(self.DESIRED_BALANCE, ReserveAtMost);
-            let remaining = balance - self.DESIRED_BALANCE;
-            send(SendParameters{
+            send(SendParameters {
                 to: ctx.sender,
-                value: remaining,
+                value: 0,
+                mode: SendRemainingValue,
             });
         }
-        
     }
 
     receive(msg: DeployNewProposal) {

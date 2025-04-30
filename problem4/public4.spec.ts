@@ -1,6 +1,6 @@
 import '@ton/test-utils';
 import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
-import { toNano } from '@ton/core';
+import { toNano, fromNano } from '@ton/core';
 import { Proposal } from '../output/solution4_Proposal';
 import { ProposalMaster } from '../output/solution4_ProposalMaster';
 import { before } from 'node:test';
@@ -110,5 +110,55 @@ describe("solution4", () => {
 
         // the vote was counted
         expect(await proposal.getProposalState()).toMatchObject({ yesCount: BigInt(expectedYesCount), noCount: BigInt(numberOfVoters - expectedYesCount) });
+    });
+
+    it('balances', async () => {
+        const masterDeployer_InitialBalance = await masterDeployer.getBalance();
+        console.log('masterDeployer address:', masterDeployer.address);
+        console.log('masterDeployer initial balance:', masterDeployer_InitialBalance);
+
+        // create proposal
+        const currentTime = BigInt(Math.floor(Date.now() / 1000));
+        await proposalMaster.send(
+            masterDeployer.getSender(),
+            {
+                value: toNano('0.1'),
+                bounce: false,
+            },
+            {
+                $$type: 'DeployNewProposal',
+                votingEndingAt: currentTime + 24n * 60n * 60n,
+            },
+        );
+
+        const masterDeployer_BalanceAfterProposalMasterDeploy = await masterDeployer.getBalance();
+        console.log('masterDeployer balance after proposal master deploy:', masterDeployer_BalanceAfterProposalMasterDeploy);
+        console.log('masterDeployer balance change:', masterDeployer_BalanceAfterProposalMasterDeploy - masterDeployer_InitialBalance);
+        console.log('masterDeployer balance change (ton):', fromNano(masterDeployer_BalanceAfterProposalMasterDeploy - masterDeployer_InitialBalance));
+        
+        const proposalMasterContract_AfterDeploy = await blockchain.getContract(proposalMaster.address);
+        const proposalMaster_BalanceAfterDeploy = proposalMasterContract_AfterDeploy.balance;
+        console.log('proposalMaster balance after deploy:', fromNano(proposalMaster_BalanceAfterDeploy));
+
+        // vote
+        const voter = await blockchain.treasury('voter');
+        const proposal = blockchain.openContract(
+            await Proposal.fromInit({
+                $$type: 'ProposalInit',
+                master: proposalMaster.address,
+                proposalId: 0n,
+            }),
+        );
+        await proposal.send(
+            voter.getSender(),
+            { value: toNano('0.1') },
+            {
+                $$type: 'Vote',
+                value: true,
+            },
+        );
+
+        // the vote was counted
+        expect(await proposal.getProposalState()).toMatchObject({ yesCount: 1n, noCount: 0n });
     });
 });

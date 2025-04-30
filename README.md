@@ -1,3 +1,17 @@
+Partial solutions by `mkl-` (final standing 201st, 474.59 points).
+
+[Original competition repo](https://github.com/ton-studio/tact-smart-battle)
+
+| Task | Score |
+|------|-------|
+| A    | 99.73 |
+| B    | 162.59 |
+| C    | 212.27 |
+| D    | 0 |
+| E    | - |
+
+It was a fun contest.
+
 # 🧠 Tact Smart Battle 🤜🤛
 
 ### Organized by [TON Studio](https://tonstudio.io/) & [Codeforces](https://codeforces.com/)

@@ -7,7 +7,9 @@
         "test2": "tact -c tact.config.json --project solution2 && jest --verbose public2",
         "test3": "tact -c tact.config.json --project solution3 && jest --verbose public3",
         "test4": "tact -c tact.config.json --project solution4 && jest --verbose public4",
-        "test5": "tact -c tact.config.json --project solution5 && jest --verbose public5"
+        "test5": "tact -c tact.config.json --project solution5 && jest --verbose public5",
+
+        "test4-balance": "tact -c tact.config.json --project solution4 && jest --verbose public4 -t 'balances'" 
     },
 
     "devDependencies": {
